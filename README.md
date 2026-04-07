@@ -1,36 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+VAAKYA AI ⚖️🤖
+Autonomous Legal Rights Protection System
 
-## Getting Started
+VAAKYA AI is an AI-powered multilingual legal assistant that analyzes documents, detects illegal clauses, identifies rights violations, and generates legal actions in seconds.
 
-First, run the development server:
+Designed to empower individuals to understand legal documents without requiring legal expertise.
 
-```bash
+🚀 Features
+📄 Upload Legal Documents (PDF / Image / Text)
+⚖️ Detect Illegal Clauses Automatically
+🧠 Multi-Agent AI Architecture
+🌍 Multilingual Support (English, Hindi, Tamil)
+📊 Legal Risk Analysis Dashboard
+📥 Download Legal Notices
+⚡ Real-Time Document Analysis
+📱 Mobile Friendly & Expo-Ready UI
+🧠 AI Agent Architecture
+
+VAAKYA AI uses 4 Autonomous AI Agents:
+
+👁️ DRISHTI
+
+Reads and extracts text from uploaded documents
+
+⚖️ NYAYA
+
+Matches clauses against Indian laws and regulations
+
+🔍 SATYA
+
+Detects violations and highlights risk levels
+
+⚡ SHAKTI
+
+Generates legal notices and suggested actions
+
+📌 Supported Document Types
+Rental Agreements
+Insurance Rejection Letters
+Bank Statements
+Loan Agreements
+Job Offer Letters
+Legal Notices
+🌍 Multilingual Support
+English
+Hindi
+Tamil
+Expandable to 12 Indian Languages
+🛠️ Tech Stack
+
+Frontend
+
+Next.js
+React
+Tailwind CSS
+
+AI & Backend
+
+Gemini API
+Agentic AI Architecture
+OCR Processing
+
+Deployment
+
+Vercel
+🎯 Use Cases
+Tenant Rights Protection
+Insurance Claim Disputes
+Bank Hidden Charges Detection
+Employment Contract Analysis
+Consumer Rights Protection
+
+Clone Repository
+
+git clone https://github.com/nishaids/VAAKYA-AI.git
+
+Install Dependencies
+
+npm install
+
+Run Development Server
+
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open Browser
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+https://vaakya-ai.vercel.app
+👨‍💻 Team — Tech Fantoms
+R. Nishanth
+Maragadhavel T
+Lakshmi Narayanan S
+Praneshwaran H
+🎓 Project Info
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Built for Project Expo 2026
+AI Legal Protection Platform
+Multilingual Autonomous AI System
 
-## Learn More
+📈 Future Improvements
+More Indian languages
+Real legal database integration
+Government portal integration
+Mobile app version
+📄 License
 
-To learn more about Next.js, take a look at the following resources:
+This project is built for academic and research purposes.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+⭐ VAAKYA AI
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Empowering Every Indian To Understand Their Legal Rights.
