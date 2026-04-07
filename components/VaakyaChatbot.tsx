@@ -13,10 +13,10 @@ interface Message {
 }
 
 const quickSuggestions = [
-  "quick1",
-  "quick2",
-  "quick3",
-  "quick4",
+  { key: "howItWorks", label: "How it works" },
+  { key: "uploadDoc", label: "Upload document" },
+  { key: "legalRights", label: "Legal rights" },
+  { key: "demoGuide", label: "Demo" },
 ];
 
 const quickActions = [
@@ -25,20 +25,53 @@ const quickActions = [
   "action3",
 ];
 
-const getFallbackResponse = (text: string): string => {
+const getSmartResponse = (text: string): string => {
   const lower = text.toLowerCase();
-  if (lower.includes('deposit') || lower.includes('security'))
-    return "Under Model Tenancy Act 2021, maximum security deposit is 2 months rent. If overcharged, upload your agreement to VAAKYA AI for instant analysis and legal notice generation!";
-  if (lower.includes('insurance') || lower.includes('claim') || lower.includes('rejected'))
-    return "IRDA mandates insurers provide rejection reasons and allow 30-day appeal. Upload your rejection letter to VAAKYA AI — we'll identify violations and file your complaint!";
-  if (lower.includes('foreclosure') || lower.includes('prepayment'))
-    return "RBI banned foreclosure penalties on floating rate home loans since 2012. Upload your bank statement to recover this amount through RBI Banking Ombudsman!";
-  if (lower.includes('how') || lower.includes('work') || lower.includes('use'))
-    return "VAAKYA AI: 1) Upload document 2) DRISHTI reads it 3) NYAYA checks Indian law 4) SATYA finds violations 5) SHAKTI drafts legal notice — all in 15 seconds. Try the sample documents!";
-  if (lower.includes('complaint') || lower.includes('court') || lower.includes('file'))
-    return "File free at edaakhil.nic.in — VAAKYA pre-fills this form automatically! No lawyer needed for claims under ₹50 lakhs. Click any sample to see Legal Actions Ready.";
-  return "Great question! Upload your document to VAAKYA AI — our 4 AI agents will analyze it with exact Indian law citations in 15 seconds. What type of document do you have?";
+  
+  if (lower.includes('how') && (lower.includes('work') || lower.includes('use') || lower.includes('function'))) {
+    return "VAAKYA AI analyzes your document using 4 AI agents:\n\n• DRISHTI reads your document (handwritten, printed, or scanned)\n• NYAYA checks against Indian laws (Consumer Act, RERA, IRDA, RBI)\n• SATYA finds illegal clauses and violations\n• SHAKTI drafts legal notice or complaint\n\nAll in under 15 seconds!";
+  }
+  
+  if (lower.includes('what') && (lower.includes('document') || lower.includes('upload') || lower.includes('file'))) {
+    return "You can upload:\n\n• Rental agreement\n• Insurance rejection letter\n• Bank statement\n• Job offer letter\n• Utility bill\n\nOr try the sample documents below for a demo!";
+  }
+  
+  if (lower.includes('why') || lower.includes('useful') || lower.includes('benefit')) {
+    return "Most people sign documents without understanding legal risks.\n\nVAAKYA AI helps you:\n• Detect illegal clauses instantly\n• Understand your rights\n• Take legal action\n\nNo lawyer needed. Free. Fast.";
+  }
+  
+  if (lower.includes('rights') || lower.includes('legal')) {
+    return "VAAKYA AI helps you understand your legal rights under:\n\n• Consumer Protection Act 2019\n• RERA (for rental disputes)\n• IRDA (insurance claims)\n• RBI (banking issues)\n\nUpload a document to detect specific violations.";
+  }
+  
+  if (lower.includes('demo') || lower.includes('try') || lower.includes('sample')) {
+    return "Try these sample documents:\n\n• Rental Agreement 🏠 - Check for illegal deposits\n• Insurance Rejection 🏥 - Find IRDA violations\n• Bank Statement 🏦 - Detect hidden fees\n\nClick any sample to see the analysis!";
+  }
+  
+  if (lower.includes('what is') || lower.includes('vaakya')) {
+    return "VAAKYA AI is an intelligent legal rights assistant that:\n\n• Analyzes documents in 12 Indian languages\n• Detects illegal clauses\n• Generates legal notices\n• Files complaints via eDaakhil\n\nAll in 15 seconds!";
+  }
+  
+  if (lower.includes('deposit') || lower.includes('security') || lower.includes('rent')) {
+    return "Under Model Tenancy Act 2021, maximum security deposit is 2 months rent. If charged more, it's illegal!\n\nUpload your rental agreement to check. VAAKYA AI will detect any violations.";
+  }
+  
+  if (lower.includes('insurance') || lower.includes('claim') || lower.includes('rejected')) {
+    return "IRDA mandates insurers provide rejection reasons and allow 30-day appeal period.\n\nUpload your rejection letter — VAAKYA AI will identify violations and help you file a complaint!";
+  }
+  
+  if (lower.includes('bank') || lower.includes('loan') || lower.includes('foreclosure')) {
+    return "RBI has banned foreclosure penalties on floating rate home loans since 2012.\n\nUpload your bank statement — we'll detect any illegal charges and help you recover funds!";
+  }
+  
+  if (lower.includes('complaint') || lower.includes('court') || lower.includes('file')) {
+    return "You can file complaints for free at edaakhil.nic.in — no lawyer needed for claims up to ₹50 lakhs.\n\nVAAKYA AI can pre-fill the form automatically!";
+  }
+  
+  return "I can help you with:\n\n• How VAAKYA AI works\n• What documents to upload\n• Your legal rights\n• Demo guidance\n\nTry asking: 'How does this work?' or 'What documents should I upload?'";
 };
+
+const welcomeMessage = `Hi, I'm VAAKYA AI ⚖️\n\nI help you detect illegal clauses in documents and protect your legal rights.\n\nTry asking:\n• How does this work?\n• What document should I upload?\n• What are my rights?`;
 
 export default function VaakyaChatbot() {
   const { t } = useLanguage();
@@ -54,12 +87,12 @@ export default function VaakyaChatbot() {
       const greetingMessage: Message = {
         id: "greeting",
         role: "assistant",
-        content: t("chatbotGreeting"),
+        content: welcomeMessage,
         timestamp: new Date(),
       };
       setMessages([greetingMessage]);
     }
-  }, [isOpen, messages.length, t]);
+  }, [isOpen, messages.length]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -88,7 +121,7 @@ export default function VaakyaChatbot() {
     if (!apiKey) {
       setTimeout(() => {
         setIsTyping(false);
-        const fallback = getFallbackResponse(userText);
+        const fallback = getSmartResponse(userText);
         setMessages(prev => [...prev, {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
@@ -154,7 +187,7 @@ Rules:
       
       const data = await response.json();
       const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 
-                    getFallbackResponse(userText);
+                    getSmartResponse(userText);
       
       setIsTyping(false);
       setMessages(prev => [...prev, {
@@ -169,7 +202,7 @@ Rules:
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: getFallbackResponse(userText),
+        content: getSmartResponse(userText),
         timestamp: new Date()
       }]);
     }
@@ -324,11 +357,11 @@ Rules:
                 <div className="flex flex-wrap gap-2 mt-2">
                   {quickSuggestions.map((suggestion) => (
                     <button
-                      key={suggestion}
-                      onClick={() => handleQuickSuggestion(t(suggestion))}
+                      key={suggestion.key}
+                      onClick={() => handleQuickSuggestion(suggestion.label)}
                       className="px-3 py-1.5 rounded-full text-[11px] border border-[rgba(139,92,246,0.3)] text-[#A09DB8] hover:bg-[rgba(139,92,246,0.1)] hover:text-[#8B5CF6] transition-colors"
                     >
-                      {t(suggestion)}
+                      {suggestion.label}
                     </button>
                   ))}
                 </div>
