@@ -409,62 +409,57 @@ function ShimmerCard() {
   );
 }
 
-const GEMINI_SYSTEM_PROMPT = `You are an expert Indian legal rights analyzer. Analyze this document carefully and return ONLY valid JSON with this exact structure, no markdown, no explanation:
+const GEMINI_SYSTEM_PROMPT = `You are an expert Indian consumer rights and legal document analyzer. 
+Analyze this document carefully and return ONLY valid JSON — absolutely no markdown, 
+no backticks, no explanation, just raw JSON starting with { and ending with }:
+
 {
-  "summary": { "type": "string", "parties": ["string"], "date": "string", "duration": "string" },
-  "violations": [{ "severity": "ILLEGAL" | "SUSPICIOUS" | "WARNING", "title": "string", "description": "string", "law": "string", "amount_recoverable": "string" }],
-  "rights": [{ "title": "string", "description": "string", "law": "string" }],
-  "legal_actions": [{ "title": "string", "type": "Download" | "File Now" | "View Draft", "description": "string" }]
+  "summary": {
+    "type": "string describing document type",
+    "parties": ["Party 1 name", "Party 2 name"],
+    "date": "document date or Not specified",
+    "duration": "duration or Not applicable"
+  },
+  "violations": [
+    {
+      "severity": "ILLEGAL",
+      "title": "Short title of violation",
+      "description": "Clear description of the problem",
+      "law": "Exact Indian law section",
+      "amount_recoverable": "Amount or type of relief"
+    }
+  ],
+  "rights": [
+    {
+      "title": "Right name",
+      "description": "What this right means",
+      "law": "Exact law reference"
+    }
+  ],
+  "legal_actions": [
+    {
+      "title": "Action name",
+      "type": "Download",
+      "description": "What this action does"
+    }
+  ]
 }
-Cite exact Indian law sections — Consumer Protection Act 2019, RERA, IRDA, RBI Master Circulars, IPC, Rent Control Act, Model Tenancy Act 2021. Be specific and accurate.`;
 
-async function analyzeWithGemini(
-  base64Data: string,
-  mimeType: string
-): Promise<GeminiResponse> {
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-  if (!apiKey || apiKey === "your_gemini_api_key_here") {
-    throw new Error("API_KEY_MISSING");
+Find ALL violations. Cite Consumer Protection Act 2019, RERA, IRDA, 
+RBI Master Circulars, IPC, Model Tenancy Act 2021, Rent Control Act.
+Be specific. Return minimum 2 violations if any exist.
+If the document is in Tamil or Hindi, still return JSON in English.`;
+
+function getMimeType(file: File): string {
+  let mimeType = file.type;
+  if (!mimeType || mimeType === 'application/octet-stream') {
+    const name = file.name.toLowerCase();
+    if (name.endsWith('.pdf')) mimeType = 'application/pdf';
+    else if (name.endsWith('.jpg') || name.endsWith('.jpeg')) mimeType = 'image/jpeg';
+    else if (name.endsWith('.png')) mimeType = 'image/png';
+    else mimeType = 'image/jpeg';
   }
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { text: GEMINI_SYSTEM_PROMPT },
-            {
-              inline_data: {
-                mime_type: mimeType,
-                data: base64Data,
-              },
-            },
-          ],
-        },
-      ],
-      generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 4096,
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`API_ERROR: ${response.status}`);
-  }
-
-  const data = await response.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error("NO_RESPONSE");
-
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error("PARSE_ERROR");
-
-  return JSON.parse(jsonMatch[0]);
+  return mimeType;
 }
 
 function fileToBase64(file: File): Promise<{ base64: string; mimeType: string }> {
@@ -473,11 +468,51 @@ function fileToBase64(file: File): Promise<{ base64: string; mimeType: string }>
     reader.onload = () => {
       const result = reader.result as string;
       const base64 = result.split(",")[1];
-      resolve({ base64, mimeType: file.type });
+      resolve({ base64, mimeType: getMimeType(file) });
     };
-    reader.onerror = reject;
+    reader.onerror = () => reject(new Error('FileReader failed'));
     reader.readAsDataURL(file);
   });
+}
+
+function parseGeminiJson(rawText: string): GeminiResponse {
+  let cleanText = rawText.trim();
+  // Remove any markdown code blocks if present
+  cleanText = cleanText.replace(/```json/g, '').replace(/```/g, '').trim();
+  // Find JSON boundaries
+  const jsonStart = cleanText.indexOf('{');
+  const jsonEnd = cleanText.lastIndexOf('}');
+  if (jsonStart === -1 || jsonEnd === -1) {
+    console.error('No JSON found in response:', cleanText);
+    throw new Error('Invalid JSON response');
+  }
+  cleanText = cleanText.substring(jsonStart, jsonEnd + 1);
+  return JSON.parse(cleanText);
+}
+
+async function analyzeWithGemini(
+  base64Data: string,
+  mimeType: string
+): Promise<GeminiResponse> {
+  console.log('[VAAKYA] Calling backend /api/analyze — mimeType:', mimeType, 'base64 length:', base64Data.length);
+
+  const response = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ base64Data, mimeType }),
+  });
+
+  console.log('[VAAKYA] Backend response status:', response.status);
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    console.error('[VAAKYA] Backend error:', response.status, errorData);
+    throw new Error(`API error: ${response.status} - ${errorData.error || 'Unknown'}`);
+  }
+
+  const parsed = await response.json();
+  console.log('[VAAKYA] ✅ Got parsed analysis from backend:', JSON.stringify(parsed).substring(0, 200));
+  return parsed as GeminiResponse;
 }
 
 const thinkingLogLines = [
@@ -615,13 +650,33 @@ export default function DemoSection() {
     async (file: File) => {
       setError(null);
       setActiveDemo("upload");
+
+      // File size check
+      if (file.size > 10 * 1024 * 1024) {
+        setError("File too large. Please upload a file under 10MB.");
+        return;
+      }
+      if (file.size > 4 * 1024 * 1024) {
+        console.warn('[VAAKYA] Large file detected — analysis may take 20-30 seconds');
+      }
+
+      console.log('[VAAKYA] Uploading file:', file.name, 'size:', file.size, 'type:', file.type);
+
       try {
         const { base64, mimeType } = await fileToBase64(file);
+        console.log('[VAAKYA] File converted to base64, mimeType:', mimeType, 'base64 length:', base64.length);
         const data = await analyzeWithGemini(base64, mimeType);
+        console.log('[VAAKYA] ✅ Gemini returned real analysis results:', JSON.stringify(data).substring(0, 200));
         runAnalysisSequence(data);
-      } catch {
-        const errorMsg = "Please add your Gemini API key to .env.local to analyze real documents";
-        setError(errorMsg);
+      } catch (err: unknown) {
+        console.error('[VAAKYA] ❌ Document analysis failed:', err);
+        if (err instanceof Error) {
+          console.error('[VAAKYA] Error message:', err.message);
+          console.error('[VAAKYA] Error stack:', err.stack);
+        }
+        // Show brief warning then auto-dismiss after 3 seconds
+        setError("Could not analyze your document. Showing demo results. Check console (F12) for details.");
+        setTimeout(() => setError(null), 5000);
         runAnalysisSequence(sampleData.rental);
       }
     },

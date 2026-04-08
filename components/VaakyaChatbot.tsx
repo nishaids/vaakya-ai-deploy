@@ -13,17 +13,10 @@ interface Message {
 }
 
 const quickSuggestions = [
-<<<<<<< HEAD
   { key: "howItWorks", label: "How it works" },
   { key: "uploadDoc", label: "Upload document" },
   { key: "legalRights", label: "Legal rights" },
   { key: "demoGuide", label: "Demo" },
-=======
-  "quick1",
-  "quick2",
-  "quick3",
-  "quick4",
->>>>>>> 1f7686927f73cce3d740c64b2a8bcd83aec04e73
 ];
 
 const quickActions = [
@@ -32,7 +25,6 @@ const quickActions = [
   "action3",
 ];
 
-<<<<<<< HEAD
 const getSmartResponse = (text: string): string => {
   const lower = text.toLowerCase();
   
@@ -81,23 +73,6 @@ const getSmartResponse = (text: string): string => {
 
 const welcomeMessage = `Hi, I'm VAAKYA AI ⚖️\n\nI help you detect illegal clauses in documents and protect your legal rights.\n\nTry asking:\n• How does this work?\n• What document should I upload?\n• What are my rights?`;
 
-=======
-const getFallbackResponse = (text: string): string => {
-  const lower = text.toLowerCase();
-  if (lower.includes('deposit') || lower.includes('security'))
-    return "Under Model Tenancy Act 2021, maximum security deposit is 2 months rent. If overcharged, upload your agreement to VAAKYA AI for instant analysis and legal notice generation!";
-  if (lower.includes('insurance') || lower.includes('claim') || lower.includes('rejected'))
-    return "IRDA mandates insurers provide rejection reasons and allow 30-day appeal. Upload your rejection letter to VAAKYA AI — we'll identify violations and file your complaint!";
-  if (lower.includes('foreclosure') || lower.includes('prepayment'))
-    return "RBI banned foreclosure penalties on floating rate home loans since 2012. Upload your bank statement to recover this amount through RBI Banking Ombudsman!";
-  if (lower.includes('how') || lower.includes('work') || lower.includes('use'))
-    return "VAAKYA AI: 1) Upload document 2) DRISHTI reads it 3) NYAYA checks Indian law 4) SATYA finds violations 5) SHAKTI drafts legal notice — all in 15 seconds. Try the sample documents!";
-  if (lower.includes('complaint') || lower.includes('court') || lower.includes('file'))
-    return "File free at edaakhil.nic.in — VAAKYA pre-fills this form automatically! No lawyer needed for claims under ₹50 lakhs. Click any sample to see Legal Actions Ready.";
-  return "Great question! Upload your document to VAAKYA AI — our 4 AI agents will analyze it with exact Indian law citations in 15 seconds. What type of document do you have?";
-};
-
->>>>>>> 1f7686927f73cce3d740c64b2a8bcd83aec04e73
 export default function VaakyaChatbot() {
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
@@ -112,20 +87,12 @@ export default function VaakyaChatbot() {
       const greetingMessage: Message = {
         id: "greeting",
         role: "assistant",
-<<<<<<< HEAD
         content: welcomeMessage,
-=======
-        content: t("chatbotGreeting"),
->>>>>>> 1f7686927f73cce3d740c64b2a8bcd83aec04e73
         timestamp: new Date(),
       };
       setMessages([greetingMessage]);
     }
-<<<<<<< HEAD
   }, [isOpen, messages.length]);
-=======
-  }, [isOpen, messages.length, t]);
->>>>>>> 1f7686927f73cce3d740c64b2a8bcd83aec04e73
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -149,26 +116,6 @@ export default function VaakyaChatbot() {
     setInputValue("");
     setIsTyping(true);
     
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-    
-    if (!apiKey) {
-      setTimeout(() => {
-        setIsTyping(false);
-<<<<<<< HEAD
-        const fallback = getSmartResponse(userText);
-=======
-        const fallback = getFallbackResponse(userText);
->>>>>>> 1f7686927f73cce3d740c64b2a8bcd83aec04e73
-        setMessages(prev => [...prev, {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: fallback,
-          timestamp: new Date()
-        }]);
-      }, 1500);
-      return;
-    }
-    
     try {
       const conversationHistory = messages.slice(-8).map(m => ({
         role: m.role === 'user' ? 'user' : 'model',
@@ -179,56 +126,27 @@ export default function VaakyaChatbot() {
         role: 'user',
         parts: [{ text: userText }]
       });
-      
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system_instruction: {
-              parts: [{
-                text: `You are VAAKYA Assistant, an expert AI legal rights advisor for India.
-                
-VAAKYA AI facts:
-- Analyzes: rental agreements, insurance rejections, bank statements, job offers, utility bills
-- 4 agents: DRISHTI (OCR), NYAYA (Rights Analyzer), SATYA (Fraud Detector), SHAKTI (Action)
-- Laws: Consumer Protection Act 2019, RERA, IRDA, RBI Circulars, IPC, Model Tenancy Act 2021
-- Generates legal notices, pre-fills eDaakhil forms
-- Free, 15 seconds, 12 Indian languages
 
-Rules:
-- Answer ANY question the user asks, whether about VAAKYA or Indian law
-- Be helpful, accurate, and cite specific law sections
-- Keep answers under 5 sentences for simple questions
-- For complex questions, give detailed step-by-step answers
-- IMPORTANT: Detect the user's language from their message and respond in the SAME language
-- If user writes in Tamil, respond in Tamil
-- If user writes in Hindi, respond in Hindi  
-- If user writes in English, respond in English
-- Always end with an actionable next step or suggestion
-- Never refuse to answer legal rights questions
-- For very complex cases, recommend uploading to VAAKYA for precise analysis`
-              }]
-            },
-            contents: conversationHistory,
-            generationConfig: {
-              maxOutputTokens: 300,
-              temperature: 0.7
-            }
-          })
-        }
-      );
+      console.log('[VAAKYA CHAT] Sending to /api/chat...');
       
-      if (!response.ok) throw new Error('API failed');
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: conversationHistory })
+      });
+      
+      console.log('[VAAKYA CHAT] Response status:', response.status);
+      
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        console.error('[VAAKYA CHAT] API error:', response.status, errData);
+        throw new Error(`API failed: ${response.status}`);
+      }
       
       const data = await response.json();
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 
-<<<<<<< HEAD
-                    getSmartResponse(userText);
-=======
-                    getFallbackResponse(userText);
->>>>>>> 1f7686927f73cce3d740c64b2a8bcd83aec04e73
+      const reply = data.reply || getSmartResponse(userText);
+      
+      console.log('[VAAKYA CHAT] ✅ Got reply:', reply.substring(0, 100));
       
       setIsTyping(false);
       setMessages(prev => [...prev, {
@@ -238,16 +156,13 @@ Rules:
         timestamp: new Date()
       }]);
       
-    } catch {
+    } catch (err) {
+      console.error('[VAAKYA CHAT] ❌ Failed:', err);
       setIsTyping(false);
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-<<<<<<< HEAD
         content: getSmartResponse(userText),
-=======
-        content: getFallbackResponse(userText),
->>>>>>> 1f7686927f73cce3d740c64b2a8bcd83aec04e73
         timestamp: new Date()
       }]);
     }
@@ -402,19 +317,11 @@ Rules:
                 <div className="flex flex-wrap gap-2 mt-2">
                   {quickSuggestions.map((suggestion) => (
                     <button
-<<<<<<< HEAD
                       key={suggestion.key}
                       onClick={() => handleQuickSuggestion(suggestion.label)}
                       className="px-3 py-1.5 rounded-full text-[11px] border border-[rgba(139,92,246,0.3)] text-[#A09DB8] hover:bg-[rgba(139,92,246,0.1)] hover:text-[#8B5CF6] transition-colors"
                     >
                       {suggestion.label}
-=======
-                      key={suggestion}
-                      onClick={() => handleQuickSuggestion(t(suggestion))}
-                      className="px-3 py-1.5 rounded-full text-[11px] border border-[rgba(139,92,246,0.3)] text-[#A09DB8] hover:bg-[rgba(139,92,246,0.1)] hover:text-[#8B5CF6] transition-colors"
-                    >
-                      {t(suggestion)}
->>>>>>> 1f7686927f73cce3d740c64b2a8bcd83aec04e73
                     </button>
                   ))}
                 </div>
